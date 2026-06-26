@@ -1,0 +1,2182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>两融业务激励与考核统计系统</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --panel: #ffffff;
+      --muted-panel: #f8fafc;
+      --text: #172033;
+      --muted: #64748b;
+      --line: #d7e0ec;
+      --green: #12805c;
+      --green-soft: #e8f8f1;
+      --red: #d92d20;
+      --red-soft: #fff1f0;
+      --amber: #a16207;
+      --amber-soft: #fff7e6;
+      --blue: #2563eb;
+      --blue-soft: #eef4ff;
+      --ink: #0f172a;
+      --slate: #253044;
+      --shadow: 0 18px 46px rgba(24, 38, 64, 0.10);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, #e8f0fb 0, #f6f8fb 260px, var(--bg) 100%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+
+    .shell {
+      width: min(1440px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.20), transparent 42%),
+        linear-gradient(180deg, #29364c, #1f2937);
+      box-shadow: 0 20px 54px rgba(15, 23, 42, 0.16);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.2;
+      color: #ffffff;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #d8e3f3;
+      line-height: 1.7;
+      max-width: 940px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .action-panel {
+      min-width: 330px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.10);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    .action-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: #d8e3f3;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .action-label b {
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .action-label span {
+      color: #b9c9dd;
+      text-align: right;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 13px;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 0 10px 18px rgba(37, 99, 235, 0.20);
+      white-space: nowrap;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(180deg, #16a36f, #0f7f59);
+      box-shadow: 0 12px 22px rgba(18, 128, 92, 0.24);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.24);
+    }
+
+    .btn.secondary {
+      color: #253044;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .topbar .btn.secondary {
+      color: #e8eef8;
+      background: rgba(255, 255, 255, 0.10);
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .btn.green { background: var(--green); box-shadow: 0 10px 18px rgba(18, 128, 92, 0.18); }
+    .btn.danger { background: var(--red); box-shadow: 0 10px 18px rgba(217, 45, 32, 0.16); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(330px, 420px) 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stack { display: grid; gap: 16px; }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(213, 224, 236, 0.95);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .input-panel {
+      border-top: 3px solid var(--blue);
+    }
+
+    .result-panel {
+      border-top: 3px solid var(--green);
+    }
+
+    .input-panel .panel-head {
+      background: linear-gradient(90deg, #eaf2ff, #f8fbff 52%);
+    }
+
+    .result-panel .panel-head {
+      background: linear-gradient(90deg, #eaf9f1, #f8fcfa 52%);
+    }
+
+    .panel-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #e6f0ff;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .result-panel .panel-kicker {
+      background: #dff5e9;
+      color: var(--green);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(37, 99, 235, 0.08), transparent 44%),
+        rgba(248, 250, 252, 0.92);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 17px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .panel-body { padding: 17px; }
+
+    .section-title {
+      margin: 22px 0 11px;
+      font-size: 14px;
+      color: #26364c;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: #78a7ff;
+    }
+
+    .section-title:nth-of-type(3)::before { background: var(--green); }
+    .section-title:nth-of-type(4)::before { background: var(--amber); }
+
+    .section-title:first-child { margin-top: 0; }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .month-entry-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .month-entry {
+      display: grid;
+      grid-template-columns: 76px 1fr 1fr;
+      gap: 10px;
+      align-items: end;
+      padding: 10px;
+      border: 1px solid #d9e6f7;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #f8fbff, #ffffff);
+    }
+
+    .is-hidden { display: none !important; }
+
+    .month-name {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      color: #26364c;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .month-chart-grid {
+      grid-column: 2 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding-top: 2px;
+    }
+
+    .auto-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .auto-summary-item {
+      padding: 11px 12px;
+      border: 1px solid #bfd7ff;
+      border-radius: var(--radius);
+      background: #eef5ff;
+    }
+
+    .auto-summary-item span {
+      display: block;
+      color: #52647d;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .auto-summary-item b {
+      color: #1d4ed8;
+      font-size: 20px;
+    }
+
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #cbd7e6;
+      border-radius: 7px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      color: var(--text);
+      padding: 9px 10px;
+      outline: none;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #93b4ff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      background: #fff;
+    }
+
+    .hint {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .explain-box {
+      margin-top: 10px;
+      padding: 11px 12px;
+      border: 1px solid #d9e6f7;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #f7fbff, #ffffff);
+      color: #40536d;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .explain-box b {
+      color: #1d4ed8;
+    }
+
+    .input-action-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 178px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 15px;
+      background: var(--muted-panel);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: #94a3b8;
+    }
+
+    .metric strong {
+      position: relative;
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .metric .value {
+      position: relative;
+      font-size: 28px;
+      line-height: 1.22;
+      font-weight: 900;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .metric .small {
+      position: relative;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      line-height: 1.55;
+    }
+
+    .metric.reward { background: linear-gradient(180deg, #eefbf5, #ffffff); border-color: #bfead8; }
+    .metric.reward::before { background: var(--green); }
+    .metric.reward .value { color: var(--green); }
+    .metric.score { background: linear-gradient(180deg, #eef4ff, #ffffff); border-color: #c9d9ff; }
+    .metric.score::before { background: var(--blue); }
+    .metric.score .value { color: var(--blue); }
+    .metric.asset { background: linear-gradient(180deg, #fff8e8, #ffffff); border-color: #f8dc9d; }
+    .metric.asset::before { background: var(--amber); }
+    .metric.asset .value { color: var(--amber); }
+    .metric.warn { background: linear-gradient(180deg, #fff1f0, #ffffff); border-color: #ffd0cc; }
+    .metric.warn::before { background: var(--red); }
+    .metric.warn .value { color: var(--red); }
+
+    .breakdown {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: linear-gradient(180deg, #fff, #fbfdff);
+    }
+
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .mini b {
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .estimate-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .estimate-card {
+      border: 1px solid #d9e6f7;
+      border-radius: var(--radius);
+      padding: 13px;
+      background: linear-gradient(180deg, #f7fbff, #ffffff);
+    }
+
+    .estimate-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .estimate-card b {
+      display: block;
+      color: #1d4ed8;
+      font-size: 22px;
+      overflow-wrap: anywhere;
+    }
+
+    .estimate-card.risk b { color: var(--red); }
+    .estimate-card.reward b { color: var(--green); }
+
+    .rank-bonus-note {
+      margin-top: 12px;
+      padding: 13px 14px;
+      border: 1px solid #f3c96a;
+      border-left: 4px solid #d28a13;
+      border-radius: var(--radius);
+      background: #fff8e8;
+      color: #6a4b11;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .rank-bonus-note strong { color: #8a5700; }
+    .rank-bonus-note.high { border-color: #9bd6be; border-left-color: var(--green); background: #effbf5; color: #27624a; }
+    .rank-bonus-note.high strong { color: var(--green); }
+    .criteria-note {
+      display: block;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed currentColor;
+      font-size: 12px;
+      line-height: 1.65;
+      opacity: .88;
+    }
+
+    .hidden-rank-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed #d7b867;
+    }
+
+    .hidden-rank-heading {
+      margin: 0 0 10px;
+      color: #80520a;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .hidden-rank-section .estimate-card {
+      margin-bottom: 0;
+      border-color: #f0ce86;
+      background: #fffaf0;
+    }
+
+    .conclusion {
+      margin-top: 12px;
+      padding: 13px 14px;
+      border: 1px solid #cfe0f5;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #f8fbff, #ffffff);
+      color: #26364c;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .conclusion b {
+      color: var(--ink);
+    }
+
+    .settlement-note {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: #eef5ff;
+      color: #38516f;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .settlement-note.final {
+      border-left-color: var(--green);
+      background: #effbf5;
+      color: #27624a;
+    }
+
+    .calculation-details {
+      margin-top: 12px;
+      border: 1px solid #edc568;
+      border-top: 3px solid #d28a13;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .calculation-details summary {
+      padding: 13px 14px;
+      color: #704a08;
+      background: #fff8e8;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 900;
+      list-style: none;
+    }
+
+    .calculation-details summary::-webkit-details-marker { display: none; }
+
+    .calculation-details summary::after {
+      content: "+";
+      float: right;
+      color: var(--blue);
+      font-size: 18px;
+      line-height: 14px;
+    }
+
+    .calculation-details[open] summary::after { content: "-"; }
+
+    .process-list {
+      display: grid;
+      gap: 0;
+      padding: 2px 14px 12px;
+    }
+    .monthly-result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .monthly-result-card {
+      border: 1px solid #c9d9ef;
+      border-top: 3px solid #178a63;
+      border-radius: var(--radius);
+      background: #f8fcfa;
+      padding: 13px;
+    }
+    .monthly-result-card h3 { margin: 0 0 9px; color: #174c3a; font-size: 15px; }
+    .monthly-result-card .result-total { margin: 9px 0 5px; color: #0f7a55; font-size: 21px; font-weight: 900; }
+    .monthly-result-card p { margin: 5px 0; color: #46566f; font-size: 12px; }
+    .metric.neutral { background: #f8fafc; border-color: #dbe3ee; box-shadow: none; }
+    .metric.neutral .value { color: #334155; font-size: 28px; }
+    #finalExportResult {
+      font-size: 23px;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+    #clientAllocationResult {
+      font-size: 22px;
+      line-height: 1.35;
+    }
+    .breakdown { display: none; }
+    #completionSummary { display: none; }
+
+    .process-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #edf1f6;
+      color: #41536b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .process-row:last-child { border-bottom: 0; }
+    .process-row b {
+      color: #80520a;
+      padding-left: 9px;
+      border-left: 3px solid #f1bd4d;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #334155;
+      background: #eef4fb;
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:nth-child(even) { background: #fbfdff; }
+    tbody tr:hover { background: #eef6ff; }
+
+    .rank-no {
+      display: inline-flex;
+      width: 26px;
+      height: 26px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      background: #e7edf5;
+      font-weight: 900;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status.good { background: var(--green-soft); color: var(--green); }
+    .status.bad { background: var(--red-soft); color: var(--red); }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      display: none;
+      max-width: min(460px, calc(100% - 44px));
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      background: var(--ink);
+      color: #fff;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+      z-index: 30;
+    }
+
+    .toast.show { display: block; }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .estimate-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100% - 20px, 1440px);
+        padding-top: 16px;
+      }
+
+      .topbar, .field-grid, .breakdown, .metric-grid, .estimate-grid, .month-entry, .auto-summary, .month-chart-grid, .monthly-result-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .process-row { grid-template-columns: 1fr; gap: 3px; }
+
+      .topbar {
+        padding: 18px;
+      }
+
+      .top-actions { justify-content: stretch; }
+      .top-actions .btn { flex: 1 1 auto; }
+      .action-panel { min-width: 0; }
+      .action-label { display: grid; }
+      .action-label span { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>两融业务激励与考核统计系统</h1>
+        <p class="subtitle">录入月度与季度业务数据后，系统自动测算分公司月度结算金额、营业部季度结算奖励、资产折算和客户剥离。数据仅保存在当前浏览器；Excel 通常导出到系统“下载”文件夹。</p>
+      </div>
+      <div class="action-panel">
+        <div class="action-label">
+          <b>快捷操作</b>
+          <span>录入完成后可确认计算，再导出当前明细</span>
+        </div>
+        <div class="top-actions">
+          <button class="btn secondary" id="seedBtn" type="button">载入示例</button>
+          <button class="btn primary" id="calcBtn" type="button">确认录入并计算</button>
+          <button class="btn green" id="exportBtn" type="button">导出 Excel</button>
+          <button class="btn danger" id="clearBtn" type="button">清空本地数据</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="stack">
+        <div class="panel input-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">数据录入</h2>
+            <span class="panel-kicker">员工填写</span>
+          </div>
+          <div class="panel-body">
+            <div class="section-title">员工</div>
+            <div class="input-action-row">
+              <div class="field">
+                <label for="employeeSelect">员工选择</label>
+                <select id="employeeSelect"></select>
+              </div>
+              <button class="btn secondary" id="addEmployeeBtn" type="button">新增</button>
+            </div>
+            <div class="field full" style="margin-top: 12px;">
+              <label for="employeeName">员工姓名</label>
+              <input id="employeeName" type="text" placeholder="请输入员工姓名" />
+            </div>
+
+            <div class="section-title">核心业务数据</div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="quarterKey">所属季度</label>
+                <select id="quarterKey">
+                  <option value="Q1">Q1（第1季度）</option>
+                  <option value="Q2">Q2（第2季度）</option>
+                  <option value="Q3">Q3（第3季度）</option>
+                  <option value="Q4">Q4（第4季度）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="quarterMonth">当前是本季度第几个月</label>
+                <select id="quarterMonth">
+                  <option value="1">第1个月</option>
+                  <option value="2">第2个月</option>
+                  <option value="3">第3个月（季度末）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="quarterlyTarget">本季度任务目标（户）</label>
+                <input id="quarterlyTarget" type="number" min="0" step="1" placeholder="员工知晓时填写" />
+              </div>
+              <div class="field">
+                <label for="quarterlyAssetBalance">本季度新增客户累计余额（万元）</label>
+                <input id="quarterlyAssetBalance" type="number" min="0" step="1" placeholder="如：600、2000" />
+              </div>
+            </div>
+            <div class="explain-box">
+              <b>填写顺序：</b>先选择季度与所属月份，再填写已知的季度目标和季度累计余额。每个月的实际新增户数只填写一次，系统自动用于对应月份的月结算。
+            </div>
+
+            <div class="section-title">本季度月度目标与完成</div>
+            <div class="month-entry-grid">
+              <div class="month-entry" data-month-entry="1">
+                <div class="month-name">第1个月</div>
+                <div class="field">
+                  <label for="month1Target">月度任务目标（户）</label>
+                  <input id="month1Target" type="number" min="0" step="1" />
+                </div>
+                <div class="field">
+                  <label for="month1Accounts">实际新增户数</label>
+                  <input id="month1Accounts" type="number" min="0" step="1" />
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month1Chart1">挂图留证：500-1000万</label><input id="month1Chart1" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month1Chart2">挂图留证：1000-5000万</label><input id="month1Chart2" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month1Chart3">挂图留证：5000万以上</label><input id="month1Chart3" type="number" min="0" step="1" /></div>
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month1HiddenReward">隐性奖金确认额（财务调整，元）</label><input id="month1HiddenReward" type="number" step="1" placeholder="参考下方第一月隐性奖励后填入" /></div>
+                  <div class="field"><label for="month1HqReward">第一月总部奖励（财务调整，元）</label><input id="month1HqReward" type="number" step="1" placeholder="知晓时由财务填写" /></div>
+                </div>
+              </div>
+              <div class="month-entry" data-month-entry="2">
+                <div class="month-name">第2个月</div>
+                <div class="field">
+                  <label for="month2Target">月度任务目标（户）</label>
+                  <input id="month2Target" type="number" min="0" step="1" />
+                </div>
+                <div class="field">
+                  <label for="month2Accounts">实际新增户数</label>
+                  <input id="month2Accounts" type="number" min="0" step="1" />
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month2Chart1">挂图留证：500-1000万</label><input id="month2Chart1" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month2Chart2">挂图留证：1000-5000万</label><input id="month2Chart2" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month2Chart3">挂图留证：5000万以上</label><input id="month2Chart3" type="number" min="0" step="1" /></div>
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month2HiddenReward">隐性奖金确认额（财务调整，元）</label><input id="month2HiddenReward" type="number" step="1" placeholder="参考下方第二月隐性奖励后填入" /></div>
+                  <div class="field"><label for="month2HqReward">第二月总部奖励（财务调整，元）</label><input id="month2HqReward" type="number" step="1" placeholder="知晓时由财务填写" /></div>
+                </div>
+              </div>
+              <div class="month-entry" data-month-entry="3">
+                <div class="month-name">第3个月</div>
+                <div class="field">
+                  <label for="month3Target">月度任务目标（户）</label>
+                  <input id="month3Target" type="number" min="0" step="1" />
+                </div>
+                <div class="field">
+                  <label for="month3Accounts">实际新增户数</label>
+                  <input id="month3Accounts" type="number" min="0" step="1" />
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month3Chart1">挂图留证：500-1000万</label><input id="month3Chart1" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month3Chart2">挂图留证：1000-5000万</label><input id="month3Chart2" type="number" min="0" step="1" /></div>
+                  <div class="field"><label for="month3Chart3">挂图留证：5000万以上</label><input id="month3Chart3" type="number" min="0" step="1" /></div>
+                </div>
+                <div class="month-chart-grid">
+                  <div class="field"><label for="month3HiddenReward">隐性奖金确认额（财务调整，元）</label><input id="month3HiddenReward" type="number" step="1" placeholder="参考下方第三月隐性奖励后填入" /></div>
+                  <div class="field"><label for="month3HqReward">第三月总部奖励（财务调整，元）</label><input id="month3HqReward" type="number" step="1" placeholder="知晓时由财务填写" /></div>
+                </div>
+              </div>
+            </div>
+            <div class="auto-summary">
+              <div class="auto-summary-item">
+                <span>本季度任务目标（已填）</span>
+                <b id="quarterlyTargetSummary">0户</b>
+              </div>
+              <div class="auto-summary-item">
+                <span>本季度实际新增（自动汇总）</span>
+                <b id="quarterlyAccountsSummary">0户</b>
+              </div>
+            </div>
+            <div class="explain-box">
+              <b>按实际进度填写：</b>第1个月只填第1月；第2个月补齐前两月；第3个月填完整三个月并进行季度结算。季度未结束时，营业部数据仅显示累计进度，不结算剥离或客户分配。
+            </div>
+
+            <div class="section-title">本季度达标条件</div>
+            <div class="field-grid">
+              <div class="field full">
+                <label for="monthlyGateQualified">每月50%门槛</label>
+                <select id="monthlyGateQualified">
+                  <option value="auto">自动识别：按已录入月份逐月判断</option>
+                  <option value="yes">手动设为满足</option>
+                  <option value="no">手动设为不满足</option>
+                </select>
+              </div>
+            </div>
+            <p class="hint" id="gateHint">自动判断会检查当前季度已发生月份：每个月完成率都达到 50% 后，才具备超额营业部奖励和客户分配资格。</p>
+
+            <div class="explain-box">
+              <b>挂图作战填报：</b>在对应月份填写已陪同分公司拜访、且可提供截图或纪要的客户数量。按资产档位分别填报；例如 800 万和 1200 万客户各 1 个，前两个档位分别填 1。
+            </div>
+
+            <div class="explain-box">
+              <b>资产折算填报：</b>填写本季度新增两融客户的余额合计。每满 500 万折算 1 个虚拟户；例如 600 万折算 1 户，2000 万折算 4 户。折算户只参与完成率和排名，不产生营业部奖励。
+            </div>
+
+            <div class="section-title">季度可配置奖励</div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="quarterHqReward">季度总部奖励（财务手动配置，元）</label>
+                <input id="quarterHqReward" type="number" step="1" placeholder="知晓时由财务填写" />
+              </div>
+              <div class="field">
+                <label for="quarterDepartmentReward">季度营业部奖金（财务手动配置，元）</label>
+                <input id="quarterDepartmentReward" type="number" step="1" placeholder="有明确金额规则时填写" />
+              </div>
+            </div>
+            <p class="hint"><b>财务调整项：</b>月度隐性奖金确认额请参考下方对应月份的“分公司隐性奖励参考”后录入；月度/季度总部奖励及季度营业部奖金仅由财务在已知政策或人工调整时填写。所有手动配置会进入最终导出金额；折算户数、剥离客户不会自动换算为金额。</p>
+          </div>
+        </div>
+
+        <div class="panel input-panel" id="rulesPanel">
+          <div class="panel-head">
+            <h2 class="panel-title">营业部规则参数</h2>
+            <span class="panel-kicker">财务维护</span>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid">
+              <div class="field">
+                <label for="basePoint">基础营业部奖励/户（元）</label>
+                <input id="basePoint" type="number" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="sprintPoint">冲刺营业部奖励/户（元）</label>
+                <input id="sprintPoint" type="number" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="sprintStart">冲刺起算户数</label>
+                <input id="sprintStart" type="number" min="1" step="1" />
+              </div>
+              <div class="field">
+                <label for="assetUnit">虚拟户折算（万元/户）</label>
+                <input id="assetUnit" type="number" min="1" step="1" />
+              </div>
+            </div>
+            <p class="hint">营业部奖励规则：每户基础奖励200元；满足月度50%门槛后，季度第7户起按300元/户结算。剥离规则：季度目标低于12户按1:3，达到12户及以上按1:2。</p>
+          </div>
+        </div>
+
+        <div class="panel input-panel" id="companyRulesPanel">
+          <div class="panel-head">
+            <h2 class="panel-title">分公司规则参数</h2>
+            <span class="panel-kicker">月度结算参考</span>
+          </div>
+          <div class="panel-body">
+            <div class="field-grid">
+              <div class="field"><label>开户贡献奖</label><div class="explain-box">1户100元/户；2户150元/户；3户200元/户；4户250元/户；5户及以上300元/户。</div></div>
+              <div class="field"><label>挂图陪访奖</label><div class="explain-box">客户已陪同分公司拜访并留证：500-1000万300元/户；1000-5000万500元/户；5000万以上700元/户。</div></div>
+            </div>
+            <div class="explain-box">
+              <b>隐性月度参考：</b>开户周度冠军按分公司当月开户表现评定；优秀联络员综合开户完成、开户绝对值、政策传达配合度与事务性工作评定。前五名参考金额为1000/800/600/400/200元，但以分公司最终名单为准，系统不自动计入金额。
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="stack">
+        <div class="panel result-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">计算结果</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+              <span class="panel-kicker">系统自动计算</span>
+              <span class="status" id="saveStatus">已保存</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="section-title">月结算结果</div>
+            <div class="monthly-result-grid" id="monthlyResultGrid"></div>
+            <div class="section-title">季度结算结果</div>
+            <div class="metric-grid">
+              <div class="metric score">
+                <strong>1. 营业部季度结算奖励</strong>
+                <div class="value" id="openingRewardResult">0元</div>
+                <div class="small" id="openingRewardTip">季度末确认超额营业部奖励</div>
+              </div>
+              <div class="metric neutral">
+                <strong>2. 上海分公司三个月结算金额</strong>
+                <div class="value" id="chartRewardResult">0元</div>
+                <div class="small" id="chartRewardTip">第一、二、三月分公司月结金额合计</div>
+              </div>
+              <div class="metric reward">
+                <strong>3. 最终导出金额构成</strong>
+                <div class="value" id="finalExportResult">0元 + 0元</div>
+                <div class="small" id="finalExportTip">上海分公司三个月金额 + 营业部季度奖励</div>
+              </div>
+              <div class="metric neutral">
+                <strong id="departmentMetricTitle">4. 季度户数统计</strong>
+                <div class="value" id="departmentPoints">0户</div>
+                <div class="small" id="departmentPointsTip">原始户数 + 折算户数 = 最终统计户数</div>
+              </div>
+              <div class="metric warn">
+                <strong id="stripMetricTitle">5. 客户剥离与分配参考</strong>
+                <div class="value" id="clientAllocationResult">剥离 0户 / 获得 0户</div>
+                <div class="small" id="clientAllocationTip">季度末按分配池和季度排名测算</div>
+              </div>
+            </div>
+
+            <div class="settlement-note" id="completionSummary"></div>
+
+            <p class="settlement-note" id="settlementNote"></p>
+
+            <div class="breakdown">
+              <div class="mini">
+                <span>三个月月度奖励合计</span>
+                <b id="branchReward">0元</b>
+              </div>
+              <div class="mini">
+                <span>本季度需剥离</span>
+                <b id="virtualAccounts">0户</b>
+                <small id="virtualAccountsTip" style="color:#64748b; font-size:12px;"></small>
+              </div>
+              <div class="mini">
+                <span>季度总部/营业部金额调整</span>
+                <b id="rankScore">0</b>
+                <small id="rankScoreTip" style="color:#64748b; font-size:12px;"></small>
+              </div>
+              <div class="mini">
+                <span>最终导出金额合计</span>
+                <b id="finalReward">0元</b>
+                <div class="small" id="finalRewardTip">营业部季度结算奖励与分公司月度结算金额统一合计</div>
+              </div>
+            </div>
+
+            <div class="conclusion" id="conclusionText">录入数据后，系统会生成三个月月结算结果，以及季度营业部结算结果。</div>
+            <section class="hidden-rank-section">
+              <h3 class="hidden-rank-heading">分公司隐性奖励参考（非承诺）</h3>
+              <div class="field" style="max-width:200px; margin-bottom:10px;">
+                <label for="hiddenReferenceMonth">参考结算月份</label>
+                <select id="hiddenReferenceMonth"><option value="1">第一月</option><option value="2">第二月</option><option value="3">第三月</option></select>
+              </div>
+              <div class="estimate-card reward">
+                <span id="hiddenReferenceLabel">第一月可参考金额</span>
+                <b id="hiddenRankReward">0元</b>
+              </div>
+              <div class="rank-bonus-note" id="rankBonusNote"></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="panel result-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">月排行榜与季度排行榜</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+              <span class="panel-kicker">系统自动排序</span>
+              <span class="status">月结与季度结算分开排序</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="section-title">月排行榜</div>
+            <div class="field" style="max-width:180px; margin:0 0 10px;">
+              <label for="monthRankMonth">选择结算月份</label>
+              <select id="monthRankMonth"><option value="1">第一月</option><option value="2">第二月</option><option value="3">第三月</option></select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>排名</th><th>员工</th><th>月度开户数</th><th>完成度</th><th>营业部月度奖励（元）</th></tr></thead>
+                <tbody id="monthRankBody"></tbody>
+              </table>
+            </div>
+            <div class="section-title">季度排行榜</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>员工</th>
+                    <th>季度开户数</th>
+                    <th>季度完成度</th>
+                    <th>营业部季度奖励（元）</th>
+                  </tr>
+                </thead>
+                <tbody id="rankBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORE_KEY = "twoFinancingRewardTool.v2";
+
+    const defaultRules = {
+      basePoint: 200,
+      sprintPoint: 300,
+      sprintStart: 6,
+      assetUnit: 500,
+      virtualWeight: 100,
+      branchAccountTiers: [
+        { min: 5, reward: 300 },
+        { min: 4, reward: 250 },
+        { min: 3, reward: 200 },
+        { min: 2, reward: 150 },
+        { min: 1, reward: 100 },
+        { min: 0, reward: 0 }
+      ],
+      chartAssetTiers: [
+        { min: 5000, reward: 700 },
+        { min: 1000, reward: 500 },
+        { min: 500, reward: 300 },
+        { min: 0, reward: 0 }
+      ],
+      topFivePrize: [1000, 800, 600, 400, 200],
+      clientAllocationWeights: [0.30, 0.25, 0.20, 0.15, 0.10],
+      allocationPoolRate: 0.60
+    };
+
+    const emptyEmployee = (name) => ({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      name,
+      quarterKey: "Q1",
+      quarterMonth: 1,
+      quarterlyTarget: 0,
+      month1Target: 0,
+      month1Accounts: 0,
+      month1Chart1: 0,
+      month1Chart2: 0,
+      month1Chart3: 0,
+      month1HiddenReward: "",
+      month1HqReward: "",
+      month1HqNote: "",
+      month2Target: 0,
+      month2Accounts: 0,
+      month2Chart1: 0,
+      month2Chart2: 0,
+      month2Chart3: 0,
+      month2HiddenReward: "",
+      month2HqReward: "",
+      month2HqNote: "",
+      month3Target: 0,
+      month3Accounts: 0,
+      month3Chart1: 0,
+      month3Chart2: 0,
+      month3Chart3: 0,
+      month3HiddenReward: "",
+      month3HqReward: "",
+      month3HqNote: "",
+      quarterlyAssetBalance: 0,
+      monthlyGateQualified: "auto",
+      quarterHqReward: "",
+      quarterHqNote: "",
+      quarterDepartmentReward: "",
+      quarterDepartmentNote: ""
+    });
+
+    let state = loadState();
+    let activeId = state.activeId || state.employees[0].id;
+
+    const $ = (id) => document.getElementById(id);
+    const numberFields = [
+      "month1Target",
+      "month1Accounts",
+      "month1Chart1",
+      "month1Chart2",
+      "month1Chart3",
+      "month1HiddenReward",
+      "month1HqReward",
+      "month2Target",
+      "month2Accounts",
+      "month2Chart1",
+      "month2Chart2",
+      "month2Chart3",
+      "month2HiddenReward",
+      "month2HqReward",
+      "month3Target",
+      "month3Accounts",
+      "month3Chart1",
+      "month3Chart2",
+      "month3Chart3",
+      "month3HiddenReward",
+      "month3HqReward",
+      "quarterlyAssetBalance",
+      "quarterlyTarget",
+      "quarterHqReward",
+      "quarterDepartmentReward",
+    ];
+    const ruleFields = ["basePoint", "sprintPoint", "sprintStart", "assetUnit"];
+
+    function loadState() {
+      const fallback = {
+        rules: { ...defaultRules },
+        employees: [emptyEmployee("员工A")],
+        activeId: ""
+      };
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        const rules = { ...defaultRules, ...(parsed.rules || {}) };
+        const employees = Array.isArray(parsed.employees) && parsed.employees.length
+          ? parsed.employees.map((item) => migrateEmployee(item))
+          : fallback.employees;
+        return { rules, employees, activeId: parsed.activeId || employees[0].id };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function migrateEmployee(item) {
+      const next = { ...emptyEmployee(item.name || "未命名员工"), ...item };
+      const legacyMonth = Math.min(3, Math.max(1, intNumber(item.quarterMonth) || 1));
+      if ((item.branchAssets || item.visitCustomers) && !item[`month${legacyMonth}Chart1`] && !item[`month${legacyMonth}Chart2`] && !item[`month${legacyMonth}Chart3`]) {
+        const oldCount = intNumber(item.visitCustomers) || 1;
+        const oldAssets = toNumber(item.branchAssets);
+        if (oldAssets >= 5000) next[`month${legacyMonth}Chart3`] = oldCount;
+        else if (oldAssets >= 1000) next[`month${legacyMonth}Chart2`] = oldCount;
+        else if (oldAssets >= 500) next[`month${legacyMonth}Chart1`] = oldCount;
+      }
+      if (item.chartTier1Count || item.chartTier2Count || item.chartTier3Count) {
+        next[`month${legacyMonth}Chart1`] = intNumber(item.chartTier1Count);
+        next[`month${legacyMonth}Chart2`] = intNumber(item.chartTier2Count);
+        next[`month${legacyMonth}Chart3`] = intNumber(item.chartTier3Count);
+      }
+      delete next.branchAssets;
+      delete next.visitCustomers;
+      if (item.assetBalance && !item.quarterlyAssetBalance) next.quarterlyAssetBalance = item.assetBalance;
+      if (item.assetBalancesText && !item.quarterlyAssetBalance) {
+        next.quarterlyAssetBalance = parseAssetBalances(item.assetBalancesText).reduce((sum, value) => sum + value, 0);
+      }
+      if ((item.actualAccounts || item.quarterlyAccounts) && !item.month1Accounts && !item.month2Accounts && !item.month3Accounts) {
+        next.month1Accounts = intNumber(item.actualAccounts || item.quarterlyAccounts);
+      }
+      if (!item.quarterlyTarget) {
+        next.quarterlyTarget = intNumber(item.month1Target) + intNumber(item.month2Target) + intNumber(item.month3Target);
+      }
+      if (!item.monthlyGateQualified) next.monthlyGateQualified = "auto";
+      if (!item.quarterKey) next.quarterKey = "Q1";
+      if (!item.quarterMonth) next.quarterMonth = 1;
+      if (item.hqReward !== undefined && next.quarterHqReward === "") {
+        next.quarterHqReward = item.hqReward;
+        next.quarterHqNote = item.hqRewardNote ? "旧版迁入：" + item.hqRewardNote : "旧版未区分月度/季度的总部奖励，请确认归属";
+      }
+      delete next.assetBalance;
+      delete next.assetBalancesText;
+      delete next.quarterlyAccounts;
+      delete next.monthlyTarget;
+      delete next.actualAccounts;
+      delete next.monthlyBranchAccounts;
+      delete next.reportedMonth;
+      delete next.chartTier1Count;
+      delete next.chartTier2Count;
+      delete next.chartTier3Count;
+      delete next.hqReward;
+      delete next.hqRewardNote;
+      return next;
+    }
+
+    function saveState() {
+      state.activeId = activeId;
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      $("saveStatus").textContent = "已保存";
+      $("saveStatus").className = "status good";
+      window.clearTimeout(saveState.timer);
+      saveState.timer = window.setTimeout(() => {
+        $("saveStatus").className = "status";
+      }, 900);
+    }
+
+    function activeEmployee() {
+      return state.employees.find((employee) => employee.id === activeId) || state.employees[0];
+    }
+
+    function toNumber(value) {
+      const num = Number(value);
+      return Number.isFinite(num) && num > 0 ? num : 0;
+    }
+
+    function intNumber(value) {
+      return Math.floor(toNumber(value));
+    }
+
+    function money(value) {
+      return `${Math.round(value).toLocaleString("zh-CN")}元`;
+    }
+
+    function points(value) {
+      return money(value);
+    }
+
+    function percent(value) {
+      return `${Math.round(value * 100)}%`;
+    }
+
+    function getTierValue(tiers, input) {
+      const item = tiers.find((tier) => input >= tier.min);
+      return item ? item.reward : 0;
+    }
+
+    function calculate(employee) {
+      const rules = state.rules;
+      const monthRows = [1, 2, 3].map((month) => {
+        const target = intNumber(employee[`month${month}Target`]);
+        const accounts = intNumber(employee[`month${month}Accounts`]);
+        const chartTier1Count = intNumber(employee[`month${month}Chart1`]);
+        const chartTier2Count = intNumber(employee[`month${month}Chart2`]);
+        const chartTier3Count = intNumber(employee[`month${month}Chart3`]);
+        const entered = target > 0 || accounts > 0;
+        const rate = target > 0 ? accounts / target : (accounts > 0 ? 1 : 0);
+        const accountUnitReward = getTierValue(rules.branchAccountTiers, accounts);
+        const openingReward = accounts * accountUnitReward;
+        const chartTier1Reward = chartTier1Count * 300;
+        const chartTier2Reward = chartTier2Count * 500;
+        const chartTier3Reward = chartTier3Count * 700;
+        const chartReward = chartTier1Reward + chartTier2Reward + chartTier3Reward;
+        const hiddenRewardProvided = employee[`month${month}HiddenReward`] !== "" && employee[`month${month}HiddenReward`] !== null && employee[`month${month}HiddenReward`] !== undefined;
+        const hiddenReward = hiddenRewardProvided ? Number(employee[`month${month}HiddenReward`]) || 0 : 0;
+        const hqRewardProvided = employee[`month${month}HqReward`] !== "" && employee[`month${month}HqReward`] !== null && employee[`month${month}HqReward`] !== undefined;
+        const hqReward = hqRewardProvided ? Number(employee[`month${month}HqReward`]) || 0 : 0;
+        const monthlyPoints = accounts * rules.basePoint;
+        return {
+          month, target, accounts, entered, rate,
+          chartTier1Count, chartTier2Count, chartTier3Count,
+          accountUnitReward, openingReward,
+          chartTier1Reward, chartTier2Reward, chartTier3Reward,
+          chartCustomerCount: chartTier1Count + chartTier2Count + chartTier3Count,
+          chartReward,
+          hiddenReward, hiddenRewardProvided, hqReward, hqRewardProvided, monthlyPoints,
+          monthlyReward: openingReward + chartReward + hiddenReward + hqReward
+        };
+      });
+      const quarterlyTarget = intNumber(employee.quarterlyTarget);
+      const quarterMonth = Math.min(3, Math.max(1, intNumber(employee.quarterMonth) || 1));
+      const quarterKey = employee.quarterKey || "Q1";
+      const currentSettlement = monthRows[quarterMonth - 1];
+      const monthlyBranchAccounts = currentSettlement.accounts;
+      const requiredMonthRows = monthRows.filter((row) => row.month <= quarterMonth);
+      const actualAccounts = requiredMonthRows.reduce((sum, row) => sum + row.accounts, 0);
+      const monthsWithTargets = requiredMonthRows.filter((row) => row.target > 0);
+      const quarterlyAssetBalance = toNumber(employee.quarterlyAssetBalance);
+      const gateMode = employee.monthlyGateQualified || "auto";
+      const autoGateQualified = requiredMonthRows.length > 0
+        && requiredMonthRows.every((row) => row.target > 0 && row.rate >= 0.5);
+      const monthlyGateQualified = gateMode === "auto" ? autoGateQualified : gateMode === "yes";
+      const quarterHqRewardProvided = employee.quarterHqReward !== "" && employee.quarterHqReward !== null && employee.quarterHqReward !== undefined;
+      const quarterHqReward = quarterHqRewardProvided ? Number(employee.quarterHqReward) || 0 : 0;
+      const quarterDepartmentRewardProvided = employee.quarterDepartmentReward !== "" && employee.quarterDepartmentReward !== null && employee.quarterDepartmentReward !== undefined;
+      const quarterDepartmentReward = quarterDepartmentRewardProvided ? Number(employee.quarterDepartmentReward) || 0 : 0;
+
+      const {
+        accountUnitReward,
+        openingReward: branchAccountReward,
+        chartTier1Count,
+        chartTier2Count,
+        chartTier3Count,
+        chartTier1Reward,
+        chartTier2Reward,
+        chartTier3Reward,
+        chartCustomerCount,
+        chartReward,
+        monthlyReward: branchReward
+      } = currentSettlement;
+
+      const stripSettlementReady = quarterMonth === 3;
+      const potentialSprintCount = monthlyGateQualified ? Math.max(0, actualAccounts - rules.sprintStart) : 0;
+      const baseCount = stripSettlementReady && monthlyGateQualified
+        ? Math.min(actualAccounts, rules.sprintStart)
+        : actualAccounts;
+      const sprintCount = stripSettlementReady ? potentialSprintCount : 0;
+      const basePoints = baseCount * rules.basePoint;
+      const sprintPoints = sprintCount * rules.sprintPoint;
+      const departmentPoints = basePoints + sprintPoints;
+      const pendingSprintAdjustment = stripSettlementReady
+        ? 0
+        : potentialSprintCount * Math.max(0, rules.sprintPoint - rules.basePoint);
+
+      const pendingVirtualAccounts = Math.floor(quarterlyAssetBalance / rules.assetUnit);
+      const virtualAccounts = stripSettlementReady ? pendingVirtualAccounts : 0;
+      const rankingAccounts = actualAccounts + virtualAccounts;
+      // Asset-converted accounts participate in quarterly completion and ranking, but not points.
+      const quarterlyMiss = Math.max(0, quarterlyTarget - rankingAccounts);
+      const stripMultiplier = quarterlyMiss ? (quarterlyTarget >= 12 ? 2 : 3) : 0;
+      const stripCustomers = stripSettlementReady ? quarterlyMiss * stripMultiplier : 0;
+      const quarterlyCompletion = quarterlyTarget > 0 ? rankingAccounts / quarterlyTarget : 0;
+      const rankScore = rankingAccounts;
+      const quarterlyMonthlyReward = requiredMonthRows.reduce((sum, row) => sum + row.monthlyReward, 0);
+      const quarterlyMonthlyPoints = requiredMonthRows.reduce((sum, row) => sum + row.monthlyPoints, 0);
+      const departmentRewardForExport = stripSettlementReady ? departmentPoints : 0;
+      const finalReward = quarterlyMonthlyReward + departmentRewardForExport + quarterHqReward + quarterDepartmentReward;
+
+      return {
+        monthlyBranchAccounts,
+        currentSettlement,
+        quarterKey,
+        quarterMonth,
+        chartTier1Count,
+        chartTier2Count,
+        chartTier3Count,
+        monthRows,
+        monthsWithTargets,
+        actualAccounts,
+        quarterlyAssetBalance,
+        monthlyGateQualified,
+        gateMode,
+        autoGateQualified,
+        quarterlyTarget,
+        quarterHqReward,
+        quarterHqRewardProvided,
+        quarterDepartmentReward,
+        quarterDepartmentRewardProvided,
+        accountUnitReward,
+        branchAccountReward,
+        chartTier1Reward,
+        chartTier2Reward,
+        chartTier3Reward,
+        chartCustomerCount,
+        chartReward,
+        branchReward,
+        quarterlyMonthlyReward,
+        quarterlyMonthlyPoints,
+        baseCount,
+        sprintCount,
+        basePoints,
+        sprintPoints,
+        pendingSprintAdjustment,
+        departmentPoints,
+        departmentRewardForExport,
+        virtualAccounts,
+        pendingVirtualAccounts,
+        rankingAccounts,
+        quarterlyMiss,
+        quarterlyCompletion,
+        stripMultiplier,
+        stripSettlementReady,
+        stripCustomers,
+        rankScore,
+        finalReward
+      };
+    }
+
+    function parseAssetBalances(text) {
+      return String(text || "")
+        .split(/[\s,，;；、]+/)
+        .map((item) => Number(item.trim()))
+        .filter((num) => Number.isFinite(num) && num > 0);
+    }
+
+    function getRankRows() {
+      return state.employees
+        .map((employee) => ({ employee, result: calculate(employee) }))
+        .sort((a, b) => b.result.actualAccounts - a.result.actualAccounts || b.result.quarterlyCompletion - a.result.quarterlyCompletion || b.result.departmentPoints - a.result.departmentPoints);
+    }
+
+    function getMonthRankRows(month) {
+      return state.employees
+        .map((employee) => ({ employee, result: calculate(employee), month: calculate(employee).monthRows[month - 1] }))
+        .sort((a, b) => b.month.accounts - a.month.accounts || b.month.rate - a.month.rate || b.month.monthlyPoints - a.month.monthlyPoints);
+    }
+
+    function getMonthlyHiddenEstimate(month) {
+      const rows = getMonthRankRows(month);
+      const rankIndex = rows.findIndex((row) => row.employee.id === activeId);
+      const row = rows[rankIndex] || rows[0];
+      const rank = rankIndex >= 0 ? rankIndex + 1 : 1;
+      const openingPrize = state.rules.topFivePrize[rank - 1] || 0;
+      const liaisonPrize = state.rules.topFivePrize[rank - 1] || 0;
+      const qualified = row && rank <= 5 && row.month.target > 0 && row.month.rate >= 0.5 && row.month.accounts >= 5;
+      return { rank, openingPrize, liaisonPrize, qualified, amount: qualified ? openingPrize + liaisonPrize : 0 };
+    }
+
+    function getAllocationMap(rows = getRankRows()) {
+      const totalStripped = rows.reduce((sum, row) => sum + row.result.stripCustomers, 0);
+      const allocatablePool = Math.floor(totalStripped * state.rules.allocationPoolRate);
+      const qualifiedTopRows = rows
+        .slice(0, 5)
+        .filter((row) => row.result.monthlyGateQualified);
+      const allocations = Object.fromEntries(rows.map((row) => [row.employee.id, 0]));
+      const capacity = Object.fromEntries(rows.map((row) => {
+        const cap = row.result.quarterlyCompletion >= 1 ? Number.POSITIVE_INFINITY : row.result.stripCustomers;
+        return [row.employee.id, cap];
+      }));
+
+      let used = 0;
+      rows.slice(0, 5).forEach((row, index) => {
+        if (!row.result.monthlyGateQualified) return;
+        const desired = Math.floor(allocatablePool * (state.rules.clientAllocationWeights[index] || 0));
+        const amount = Math.min(desired, capacity[row.employee.id]);
+        allocations[row.employee.id] = amount;
+        used += amount;
+      });
+
+      let remainder = Math.max(0, allocatablePool - used);
+      let cursor = 0;
+      let guard = 0;
+      while (remainder > 0 && qualifiedTopRows.length && guard < allocatablePool * qualifiedTopRows.length + 10) {
+        const row = qualifiedTopRows[cursor % qualifiedTopRows.length];
+        if (allocations[row.employee.id] < capacity[row.employee.id]) {
+          allocations[row.employee.id] += 1;
+          remainder -= 1;
+        }
+        cursor += 1;
+        guard += 1;
+      }
+
+      return { allocations, totalStripped, allocatablePool, undistributedClients: remainder };
+    }
+
+    function getActiveRankEstimate() {
+      const rows = getRankRows();
+      const rankIndex = rows.findIndex((row) => row.employee.id === activeId);
+      const activeRow = rows[rankIndex] || rows[0];
+      const rank = rankIndex >= 0 ? rankIndex + 1 : 1;
+      const allocation = getAllocationMap(rows);
+      const canAllocate = rank <= 5 && activeRow && activeRow.result.monthlyGateQualified;
+      const estimatedClients = activeRow ? allocation.allocations[activeRow.employee.id] || 0 : 0;
+      const openingPrize = state.rules.topFivePrize[rank - 1] || 0;
+      const liaisonPrize = state.rules.topFivePrize[rank - 1] || 0;
+      const hiddenRankReward = rank <= 5 ? openingPrize + liaisonPrize : 0;
+      const isStrongRankReference = rank <= 5
+        && activeRow
+        && activeRow.result.monthlyGateQualified
+        && activeRow.result.quarterlyCompletion >= 1
+        && activeRow.result.monthlyBranchAccounts >= 5;
+      return {
+        rank,
+        totalStripped: allocation.totalStripped,
+        allocatablePool: allocation.allocatablePool,
+        estimatedClients,
+        hiddenRankReward,
+        openingPrize,
+        liaisonPrize,
+        isStrongRankReference,
+        canAllocate,
+        activeResult: activeRow ? activeRow.result : calculate(activeEmployee())
+      };
+    }
+
+    function renderAll() {
+      renderEmployeeSelect();
+      renderForm();
+      renderResults();
+      renderRank();
+    }
+
+    function renderEmployeeSelect() {
+      $("employeeSelect").innerHTML = state.employees.map((employee) => (
+        `<option value="${employee.id}" ${employee.id === activeId ? "selected" : ""}>${escapeHtml(employee.name)}</option>`
+      )).join("");
+    }
+
+    function renderForm() {
+      const employee = activeEmployee();
+      $("employeeName").value = employee.name || "";
+      numberFields.forEach((field) => {
+        $(field).value = employee[field] || 0;
+      });
+      $("monthlyGateQualified").value = employee.monthlyGateQualified || "auto";
+      $("quarterKey").value = employee.quarterKey || "Q1";
+      $("quarterMonth").value = employee.quarterMonth || 1;
+      ruleFields.forEach((field) => {
+        $(field).value = state.rules[field] || 0;
+      });
+      updateMonthEntryVisibility();
+    }
+
+    function updateMonthEntryVisibility() {
+      const currentMonth = intNumber($("quarterMonth").value) || 1;
+      document.querySelectorAll("[data-month-entry]").forEach((entry) => {
+        entry.classList.toggle("is-hidden", intNumber(entry.dataset.monthEntry) > currentMonth);
+      });
+    }
+
+    function renderResults() {
+      const result = calculate(activeEmployee());
+      const isQuarterEnd = result.stripSettlementReady;
+      const estimate = getActiveRankEstimate();
+      $("departmentMetricTitle").textContent = "4. 季度户数统计";
+      $("stripMetricTitle").textContent = "5. 客户剥离与分配参考";
+      const settlementNote = $("settlementNote");
+      settlementNote.className = isQuarterEnd ? "settlement-note final" : "settlement-note";
+      settlementNote.textContent = isQuarterEnd
+        ? `${result.quarterKey}已进入季度末：三个月分公司月结算与季度营业部结算均可确认。`
+        : `${result.quarterKey}第${result.quarterMonth}个月：已录入月份按分公司月结算；营业部季度奖励、余额折算、剥离和客户分配均待第3个月结算。`;
+      const requiredRows = result.monthRows.filter((row) => row.month <= result.quarterMonth);
+      const monthCompletionText = requiredRows
+        .map((row) => `第${row.month}个月 ${row.accounts}/${row.target || "-"}${row.target ? `（${percent(row.rate)}）` : "（未填目标）"}`)
+        .join("；");
+      $("completionSummary").className = isQuarterEnd ? "settlement-note final" : "settlement-note";
+      $("completionSummary").textContent = isQuarterEnd
+        ? `完成度：${monthCompletionText}；季度 ${result.rankingAccounts}/${result.quarterlyTarget || "-"}（${percent(result.quarterlyCompletion)}，含资产折算 ${result.virtualAccounts} 户）。`
+        : `月度完成度：${monthCompletionText}。季度尚未结束，不展示季度完成度，也不启用季度规则。`;
+      $("quarterlyTargetSummary").textContent = `${result.quarterlyTarget}户`;
+      $("quarterlyAccountsSummary").textContent = `${result.actualAccounts}户`;
+      $("branchReward").textContent = money(result.quarterlyMonthlyReward);
+      $("chartRewardResult").textContent = money(result.quarterlyMonthlyReward);
+      $("chartRewardTip").textContent = `第一、二、三月分公司月度结算金额合计 ${money(result.quarterlyMonthlyReward)}`;
+      $("finalExportResult").textContent = `${money(result.quarterlyMonthlyReward)} + ${money(result.departmentRewardForExport)}`;
+      $("finalExportTip").textContent = isQuarterEnd
+        ? `上海分公司三个月 ${money(result.quarterlyMonthlyReward)} + 营业部季度奖励 ${money(result.departmentRewardForExport)}；财务最终合计 ${money(result.finalReward)}`
+        : `营业部季度奖励待季度末结算；当前财务金额 ${money(result.finalReward)}`;
+      $("openingRewardResult").textContent = points(result.departmentPoints);
+      $("openingRewardTip").textContent = isQuarterEnd ? `基础奖励 ${points(result.basePoints)}；超额奖励 ${points(result.sprintPoints)}` : `季度未结束：已发生月份营业部奖励暂估 ${points(result.quarterlyMonthlyPoints)}；超额奖励待季度末确认`;
+      $("departmentPoints").textContent = `${result.rankingAccounts}户`;
+      $("departmentPointsTip").textContent = `原始 ${result.actualAccounts} 户 + 折算 ${isQuarterEnd ? result.virtualAccounts : 0} 户 = 最终 ${result.rankingAccounts} 户`;
+      $("virtualAccounts").textContent = `${result.stripCustomers}户`;
+      $("virtualAccountsTip").textContent = isQuarterEnd
+        ? `季度累计余额 ${result.quarterlyAssetBalance.toLocaleString("zh-CN")} 万元，已按规则折算`
+        : `季度未结束：预计 ${result.pendingVirtualAccounts} 户，待季度末确认`;
+      const gateModeText = result.gateMode === "auto" ? "自动识别" : "手动设置";
+      const monthRateText = requiredRows.length
+        ? requiredRows.map((row) => `第${row.month}个月 ${row.target ? `${Math.round(row.rate * 100)}%` : "未填目标"}`).join("，")
+        : "当前统计范围内暂无月度目标";
+      $("gateHint").textContent = `${gateModeText}：当前为${result.quarterKey}第${result.quarterMonth}个月，${result.monthlyGateQualified ? "满足" : "未满足"}每月50%门槛。${monthRateText}。`;
+      $("clientAllocationResult").textContent = isQuarterEnd
+        ? `剥离 ${result.stripCustomers}户 / 预计获得 ${estimate.estimatedClients}户`
+        : "剥离待结算 / 获得待结算";
+      $("clientAllocationTip").textContent = isQuarterEnd
+        ? `全员剥离 ${estimate.totalStripped} 户，60%即 ${estimate.allocatablePool} 户进入分配池；按季度开户数、完成度与营业部奖励排序测算`
+        : "季度未结束，客户分配池与预计获得客户均待季度末确认";
+      $("rankScore").textContent = money(result.quarterHqReward + result.quarterDepartmentReward);
+      $("rankScoreTip").textContent = isQuarterEnd
+        ? `实际 ${result.actualAccounts} 户 + 折算 ${result.virtualAccounts} 户`
+        : `季度未结算：当前仅计实际 ${result.actualAccounts} 户；余额折算预计 ${result.pendingVirtualAccounts} 户待季度末确认`;
+      $("finalReward").textContent = money(result.finalReward);
+      $("finalRewardTip").textContent = "三个月分公司月度结算金额 + 营业部季度结算奖励 + 季度总部/营业部财务调整。";
+      renderHiddenCriteria();
+      renderConclusion();
+      renderMonthlyResultGrid();
+    }
+
+    function renderMonthlyResultGrid() {
+      const result = calculate(activeEmployee());
+      $("monthlyResultGrid").innerHTML = result.monthRows.filter((row) => row.month <= result.quarterMonth).map((row) => `
+        <article class="monthly-result-card">
+          <h3>第${row.month}个月月结算</h3>
+          <p>完成度：<b>${row.target ? percent(row.rate) : "未填月目标"}</b></p>
+          <p>开户奖金：${money(row.openingReward)}</p>
+          <p>挂图陪访奖金：${money(row.chartReward)}</p>
+          <p>隐性奖金：${row.hiddenRewardProvided ? money(row.hiddenReward) : "待分公司确认"}</p>
+          <p>营业部月度奖励（参考，季度结算）：${points(row.monthlyPoints)}</p>
+          <div class="result-total">分公司月度结算金额 ${money(row.monthlyReward)}</div>
+          <p>分公司月结：开户 ${row.accounts}户 × ${money(row.accountUnitReward)}/户 + 挂图 ${money(row.chartReward)} + 已确认隐性/总部调整。营业部月度奖励不参与本月分公司结算。</p>
+        </article>
+      `).join("");
+    }
+
+    function renderMonthlySettlements() {
+      const result = calculate(activeEmployee());
+      const rows = result.monthRows.filter((row) => row.month <= result.quarterMonth);
+      $("monthlySettlementList").innerHTML = rows.map((row) => {
+        const targetText = row.target ? `完成 ${row.accounts}/${row.target}（${percent(row.rate)}）` : `新增 ${row.accounts} 户（未填月目标）`;
+        const chartText = `挂图：${row.chartTier1Count} 户×300元 + ${row.chartTier2Count} 户×500元 + ${row.chartTier3Count} 户×700元 = ${money(row.chartReward)}`;
+        return `
+          <div class="process-row">
+            <b>第${row.month}个月分公司月结</b>
+            <span>${targetText}；开户 ${row.accounts} 户 × ${money(row.accountUnitReward)}/户 = ${money(row.openingReward)}；${chartText}；月结奖励合计 ${money(row.monthlyReward)}。</span>
+          </div>
+        `;
+      }).join("") || '<div class="process-row"><span>尚未录入月度数据。</span></div>';
+    }
+
+    function renderHiddenCriteria() {
+      const month = intNumber($("hiddenReferenceMonth").value) || 1;
+      const estimate = getMonthlyHiddenEstimate(month);
+      const note = $("rankBonusNote");
+      const existing = note.querySelector(".criteria-note");
+      if (existing) existing.remove();
+      $("hiddenReferenceLabel").textContent = `第${month}个月可参考金额`;
+      $("hiddenRankReward").textContent = estimate.qualified ? money(estimate.amount) : "暂不计入";
+      note.className = estimate.qualified ? "rank-bonus-note high" : "rank-bonus-note";
+      note.innerHTML = estimate.qualified
+        ? `<strong>第${month}个月：可作高参考。</strong> 当前月榜第 ${estimate.rank} 名，对应开户周度冠军参考 ${money(estimate.openingPrize)}、优秀联络员参考 ${money(estimate.liaisonPrize)}；最终仍以分公司全员统计为准。`
+        : `<strong>第${month}个月：暂不计入预算。</strong> 隐性奖励由分公司按当月开户表现、开户完成、政策传达配合度与事务性工作综合评定；当前页面仅作参考，不代表最终名单。`;
+      note.insertAdjacentHTML("beforeend", `<span class="criteria-note">评定参考：开户周度冠军以开户表现为主；优秀联络员结合开户完成、开户绝对值、政策传达配合度与事务性工作综合评判。该信息由分公司统一统计。</span>`);
+    }
+
+    function renderRankEstimate() {
+      const estimate = getActiveRankEstimate();
+      $("rankPosition").textContent = `第 ${estimate.rank} 名`;
+      $("estimatedClients").textContent = `${estimate.estimatedClients}户`;
+      $("hiddenRankReward").textContent = estimate.isStrongRankReference
+        ? money(estimate.hiddenRankReward)
+        : "暂不计入";
+      $("totalStripPool").textContent = `${estimate.totalStripped}户`;
+      const allocationText = estimate.canAllocate
+        ? `当前具备前五名客户分配资格：全员剥离 ${estimate.totalStripped} 户，其中约 ${estimate.allocatablePool} 户进入分配池；按当前名次预计获得 ${estimate.estimatedClients} 户。完成率未达100%时，获分配客户数不超过自身剥离数。`
+        : "当前未同时满足前五名与每月50%门槛，预计获分配客户为 0 户。";
+      $("rankEstimateTip").textContent = `${allocationText} 分配池按“剥离存量客户的60%参与本季度两融方案分配”测算；系统不假设客户属于富裕客户，也未按资产等级筛选，其余40%由营业部线下安排。`;
+      const bonusNote = $("rankBonusNote");
+      if (estimate.isStrongRankReference) {
+        bonusNote.className = "rank-bonus-note high";
+        bonusNote.innerHTML = `<strong>分公司隐性奖励：可作高参考。</strong> 按当前名次的潜在参考金额为 ${money(estimate.hiddenRankReward)}；仅作内部参考，最终以分公司全员统计和最终名单为准。`;
+      } else {
+        bonusNote.className = "rank-bonus-note";
+        const potential = estimate.hiddenRankReward ? `当前名次对应的潜在金额为 ${money(estimate.hiddenRankReward)}。` : "当前不在前五名范围内。";
+        bonusNote.innerHTML = `<strong>分公司隐性奖励：暂不计入预算。</strong> 当前页面只比较已录入员工，排名第一不等于分公司排名第一。${potential} 仅作内部参考，最终以分公司全员统计和最终名单为准。`;
+      }
+    }
+
+    function renderConclusion() {
+      const employee = activeEmployee();
+      const result = calculate(employee);
+      const estimate = getActiveRankEstimate();
+      const gateText = result.monthlyGateQualified ? "已满足每月50%门槛" : "未满足每月50%门槛";
+      const stripText = result.stripSettlementReady
+        ? `本季度需剥离 <b>${result.stripCustomers}户</b>`
+        : `季度尚未结束，<b>暂不结算剥离</b>`;
+      const departmentText = result.stripSettlementReady
+        ? `营业部季度结算奖励 <b>${points(result.departmentRewardForExport)}</b>，总户数 <b>${result.rankingAccounts}户</b>（实际 ${result.actualAccounts}户 + 资产折算 ${result.virtualAccounts}户）`
+        : `营业部季度奖励暂估 <b>${points(result.quarterlyMonthlyPoints)}</b>；超额奖励、余额折算和剥离待季度末确认`;
+      $("conclusionText").innerHTML = `
+        <b>${escapeHtml(employee.name || "当前员工")}</b>：第${result.quarterMonth}个月分公司奖励 <b>${money(result.branchReward)}</b>；
+        ${departmentText}；
+        ${gateText}；${stripText}，预计获得别人剥离客户 <b>${estimate.estimatedClients}户</b>；
+        ${result.stripSettlementReady ? `最终导出金额为：<b>${money(result.finalReward)}</b>，已包含营业部季度结算奖励。` : `当前金额仅为已发生月份的分公司月度结算累计：<b>${money(result.finalReward)}</b>；营业部季度奖励将在季度末并入最终导出金额。`}
+      `;
+    }
+
+    function renderCalculationProcess() {
+      const result = calculate(activeEmployee());
+      const estimate = getActiveRankEstimate();
+      const processRows = getCalculationProcessRows(result, estimate)
+        .filter(([label]) => !["分公司预估奖励（本月）", "最终导出金额"].includes(label));
+      $("calculationProcess").innerHTML = processRows.map(([label, text]) => `
+        <div class="process-row">
+          <b>${escapeHtml(label)}</b>
+          <span>${escapeHtml(text)}</span>
+        </div>
+      `).join("");
+    }
+
+    function getCalculationProcessRows(result, estimate) {
+      const monthlySettlementRows = result.monthRows
+        .filter((row) => row.month <= result.quarterMonth)
+        .map((row) => [
+          `第${row.month}个月分公司月结`,
+          `开户：${row.accounts} 户 × ${money(row.accountUnitReward)}/户 = ${money(row.openingReward)}；挂图：500-1000万 ${row.chartTier1Count} 户 × 300元 + 1000-5000万 ${row.chartTier2Count} 户 × 500元 + 5000万以上 ${row.chartTier3Count} 户 × 700元 = ${money(row.chartReward)}；本月分公司奖励 = ${money(row.monthlyReward)}。`
+        ]);
+      const monthFormula = result.monthRows
+        .map((row) => `第${row.month}月 ${row.target}/${row.accounts}`)
+        .join(" + ");
+      const gateDetail = result.monthRows
+        .filter((row) => row.month <= result.quarterMonth)
+        .map((row) => `第${row.month}月 ${row.target ? percent(row.rate) : "未填目标"}`)
+        .join("，") || "暂无已录入月份";
+      const gateSource = result.gateMode === "auto" ? `自动识别，当前为${result.quarterKey}第${result.quarterMonth}个月（${gateDetail}）` : "手动覆盖";
+      return [
+        ["季度自动汇总", `${monthFormula}。本季度任务目标 = ${result.quarterlyTarget} 户；本季度实际新增 = ${result.actualAccounts} 户。`],
+        ["50%门槛", `${gateSource}，本次判定为 ${result.monthlyGateQualified ? "满足" : "不满足"}。`],
+        ["开户贡献奖（本月）", `${result.monthlyBranchAccounts} 户 × ${money(result.accountUnitReward)} / 户 = ${money(result.branchAccountReward)}。`],
+        ["挂图作战奖（本月）", `500-1000万：${result.chartTier1Count} 户 × 300元；1000-5000万：${result.chartTier2Count} 户 × 500元；5000万以上：${result.chartTier3Count} 户 × 700元；合计 ${money(result.chartReward)}。`],
+        ["分公司预估奖励（本月）", `${money(result.branchAccountReward)} + ${money(result.chartReward)} = ${money(result.branchReward)}。`],
+        ["营业部季度结算奖励", result.stripSettlementReady
+          ? `基础 ${result.baseCount} 户 × ${points(state.rules.basePoint)}；超额 ${result.sprintCount} 户 × ${points(state.rules.sprintPoint)}；合计 ${points(result.departmentPoints)}。`
+          : `季度未结束：当前仅暂估基础营业部奖励 ${points(result.basePoints)}。超过第6户的超额营业部奖励将在季度末根据三个月门槛统一确认${result.pendingSprintAdjustment ? `，预计可调整 ${points(result.pendingSprintAdjustment)}` : ""}。`],
+        ["资产折算与总户数（本季度）", result.stripSettlementReady
+          ? `${result.quarterlyAssetBalance.toLocaleString("zh-CN")} 万元 ÷ ${state.rules.assetUnit} 万取整 = ${result.virtualAccounts} 户；总户数 = 实际 ${result.actualAccounts} 户 + 折算 ${result.virtualAccounts} 户 = ${result.rankingAccounts} 户。`
+          : `季度未结束：累计余额 ${result.quarterlyAssetBalance.toLocaleString("zh-CN")} 万元预计可折算 ${result.pendingVirtualAccounts} 户，待季度末确认；当前总户数仅按实际新增 ${result.actualAccounts} 户计算。`],
+        ["客户剥离（本季度）", result.stripSettlementReady
+          ? `季度目标 ${result.quarterlyTarget} 户 - 总户数 ${result.rankingAccounts} 户（实际 ${result.actualAccounts} 户 + 折算 ${result.virtualAccounts} 户）= 差 ${result.quarterlyMiss} 户；按 1:${result.stripMultiplier || 0}，需剥离 ${result.stripCustomers} 户。`
+          : `当前为${result.quarterKey}第${result.quarterMonth}个月，距季度目标还差 ${result.quarterlyMiss} 户；季度未结束，暂不结算剥离。`],
+        ["剥离客户分配（本季度）", `全员剥离 ${estimate.totalStripped} 户，其中 ${estimate.allocatablePool} 户进入分配池；当前第 ${estimate.rank} 名，预计获得 ${estimate.estimatedClients} 户。`],
+        ["分公司隐性奖励参考", estimate.isStrongRankReference
+          ? `当前满足高参考条件，按第${estimate.rank}名潜在参考 ${money(estimate.hiddenRankReward)}（开户周度冠军 ${money(estimate.openingPrize)} + 优秀联络员 ${money(estimate.liaisonPrize)}）。但最终仍以分公司全部员工统计为准。`
+          : `暂不计入预算。当前第${estimate.rank}名潜在金额 ${money(estimate.hiddenRankReward)}，仅作内部参考，最终以分公司全员统计和最终名单为准。`],
+        ["最终导出金额", result.hqRewardProvided
+          ? `本月分公司预估奖励 ${money(result.branchReward)} + 总部调整 ${money(result.hqReward)} = ${money(result.finalReward)}。营业部积分 ${points(result.departmentPoints)} 单独记录，不与金额相加。`
+          : `总部奖励未填写，当前金额 = 本月分公司预估奖励 ${money(result.branchReward)}。营业部积分 ${points(result.departmentPoints)} 单独记录，不与金额相加。`]
+      ];
+    }
+
+    function renderRank() {
+      const rows = getRankRows();
+      const allocation = getAllocationMap(rows);
+      $("rankBody").innerHTML = rows.map((row, index) => {
+        const active = row.employee.id === activeId ? "style=\"background:#f8fbff\"" : "";
+        const statusClass = row.result.stripCustomers > 0 ? "status bad" : "status good";
+        const statusText = row.result.stripCustomers > 0 ? `${row.result.stripCustomers}户` : "无";
+        const receivedClients = allocation.allocations[row.employee.id] || 0;
+        return `
+          <tr ${active}>
+            <td><span class="rank-no">${index + 1}</span></td>
+            <td>${escapeHtml(row.employee.name)}</td>
+            <td>${row.result.actualAccounts}户</td>
+            <td>${percent(row.result.quarterlyCompletion)}</td>
+            <td>${points(row.result.departmentPoints)}</td>
+          </tr>
+        `;
+      }).join("");
+      const selectedMonth = intNumber($("monthRankMonth").value) || 1;
+      const monthRows = getMonthRankRows(selectedMonth);
+      $("monthRankBody").innerHTML = monthRows.map((row, index) => `
+        <tr><td><span class="rank-no">${index + 1}</span></td><td>${escapeHtml(row.employee.name)}</td><td>${row.month.accounts}户</td><td>${row.month.target ? percent(row.month.rate) : "未填目标"}</td><td>${points(row.month.monthlyPoints)}</td></tr>
+      `).join("");
+    }
+
+    function bindEvents() {
+      $("employeeSelect").addEventListener("change", (event) => {
+        activeId = event.target.value;
+        saveState();
+        renderAll();
+      });
+
+      $("employeeName").addEventListener("input", (event) => {
+        activeEmployee().name = event.target.value.trim() || "未命名员工";
+        saveState();
+        renderEmployeeSelect();
+        renderRank();
+      });
+
+      numberFields.forEach((field) => {
+        $(field).addEventListener("input", (event) => {
+          activeEmployee()[field] = toNumber(event.target.value);
+          saveState();
+          renderResults();
+          renderRank();
+        });
+      });
+
+      $("monthlyGateQualified").addEventListener("change", (event) => {
+        activeEmployee().monthlyGateQualified = event.target.value;
+        saveState();
+        renderResults();
+        renderRank();
+      });
+
+      $("quarterKey").addEventListener("change", (event) => {
+        activeEmployee().quarterKey = event.target.value;
+        saveState();
+        renderResults();
+        renderRank();
+      });
+
+      $("quarterMonth").addEventListener("change", (event) => {
+        activeEmployee().quarterMonth = intNumber(event.target.value) || 1;
+        saveState();
+        updateMonthEntryVisibility();
+        renderResults();
+        renderRank();
+      });
+
+      $("monthRankMonth").addEventListener("change", () => {
+        renderRank();
+      });
+      $("hiddenReferenceMonth").addEventListener("change", () => {
+        renderHiddenCriteria();
+      });
+
+      ruleFields.forEach((field) => {
+        $(field).addEventListener("input", (event) => {
+          state.rules[field] = toNumber(event.target.value);
+          saveState();
+          renderResults();
+          renderRank();
+        });
+      });
+
+      $("addEmployeeBtn").addEventListener("click", () => {
+        const employee = emptyEmployee(`员工${state.employees.length + 1}`);
+        state.employees.push(employee);
+        activeId = employee.id;
+        saveState();
+        renderAll();
+        $("employeeName").focus();
+        $("employeeName").select();
+      });
+
+      $("seedBtn").addEventListener("click", loadExample);
+      $("calcBtn").addEventListener("click", () => {
+        saveState();
+        renderAll();
+        showToast("已按当前录入数据重新计算。");
+      });
+      $("exportBtn").addEventListener("click", exportExcel);
+      $("clearBtn").addEventListener("click", () => {
+        if (!confirm("确认清空本地保存的所有员工和规则数据？")) return;
+        localStorage.removeItem(STORE_KEY);
+        state = loadState();
+        activeId = state.employees[0].id;
+        saveState();
+        renderAll();
+      });
+    }
+
+    function loadExample() {
+      const employeeA = emptyEmployee("员工A");
+      Object.assign(employeeA, {
+        name: "员工A",
+        quarterKey: "Q2",
+        quarterMonth: 3,
+        quarterlyTarget: 21,
+        month1Target: 7,
+        month1Accounts: 4,
+        month1Chart1: 1,
+        month1Chart2: 0,
+        month1Chart3: 0,
+        month2Target: 7,
+        month2Accounts: 3,
+        month2Chart1: 0,
+        month2Chart2: 1,
+        month2Chart3: 0,
+        month3Target: 7,
+        month3Accounts: 3,
+        month3Chart1: 1,
+        month3Chart2: 1,
+        month3Chart3: 0,
+        quarterlyAssetBalance: 2000,
+        monthlyGateQualified: "auto",
+        quarterHqReward: "",
+        quarterDepartmentReward: ""
+      });
+      const employeeB = emptyEmployee("员工B");
+      Object.assign(employeeB, {
+        name: "员工B",
+        quarterKey: "Q2",
+        quarterMonth: 2,
+        quarterlyTarget: 24,
+        month1Target: 8,
+        month1Accounts: 5,
+        month1Chart1: 1,
+        month1Chart2: 0,
+        month1Chart3: 0,
+        month2Target: 8,
+        month2Accounts: 5,
+        month2Chart1: 0,
+        month2Chart2: 1,
+        month2Chart3: 0,
+        quarterlyAssetBalance: 900,
+        monthlyGateQualified: "auto",
+        quarterHqReward: "",
+        quarterDepartmentReward: ""
+      });
+      state.employees = [employeeA, employeeB];
+      activeId = employeeA.id;
+      saveState();
+      renderAll();
+      showToast("已载入员工A（季度末剥离案例）与员工B（第二月、完成率达标案例）。");
+    }
+
+    function exportExcel() {
+      const employee = activeEmployee();
+      const result = calculate(employee);
+      const estimate = getActiveRankEstimate();
+      const allocation = getAllocationMap();
+      const calculationRows = getCalculationProcessRows(result, estimate)
+        .filter((row) => !row.join("").includes("本月"));
+      const settlementMonthLabel = `第${result.quarterMonth}个月`;
+      const rows = [
+        ["员工", employee.name],
+        ["导出时间", new Date().toLocaleString("zh-CN")],
+        ["所属季度", result.quarterKey],
+        ["当前季度月份", `第${result.quarterMonth}个月`],
+        [`${settlementMonthLabel}有效开户数`, result.monthlyBranchAccounts],
+        [`${settlementMonthLabel}挂图留证客户：500-1000万`, result.chartTier1Count],
+        [`${settlementMonthLabel}挂图留证客户：1000-5000万`, result.chartTier2Count],
+        [`${settlementMonthLabel}挂图留证客户：5000万以上`, result.chartTier3Count],
+        ["第1个月目标/完成", `${result.monthRows[0].target}/${result.monthRows[0].accounts}`],
+        ["第2个月目标/完成", `${result.monthRows[1].target}/${result.monthRows[1].accounts}`],
+        ["第3个月目标/完成", `${result.monthRows[2].target}/${result.monthRows[2].accounts}`],
+        ["本季度实际新增两融户数", result.actualAccounts],
+        ["本季度新增客户累计余额（万元）", result.quarterlyAssetBalance],
+        ["每月50%门槛", result.monthlyGateQualified ? "已满足" : "未满足"],
+        ["本季度任务目标", result.quarterlyTarget],
+        ["本季度实际完成户数", result.actualAccounts],
+        ["季度总部奖励", result.quarterHqRewardProvided ? result.quarterHqReward : "未填写"],
+        ["季度营业部奖金", result.quarterDepartmentRewardProvided ? result.quarterDepartmentReward : "未填写"],
+        [`${settlementMonthLabel}开户贡献奖`, result.branchAccountReward],
+        [`${settlementMonthLabel}挂图作战奖`, result.chartReward],
+        ["三个月月度奖励合计", result.quarterlyMonthlyReward],
+        ["最终导出金额合计", result.finalReward],
+        ["营业部季度结算奖励（元）", result.departmentRewardForExport],
+        ["基础营业部奖励（元）", result.basePoints],
+        ["超额营业部奖励（元）", result.sprintPoints],
+        ["营业部季度奖励结算状态", result.stripSettlementReady ? "季度末已结算并纳入最终金额" : "季度未结束，当前仅为营业部奖励暂估，未纳入最终金额"],
+        ["超额营业部奖励待结算（元）", result.stripSettlementReady ? 0 : result.pendingSprintAdjustment],
+        ["本季度资产折算户数", result.virtualAccounts],
+        ["资产折算预估户数", result.stripSettlementReady ? 0 : result.pendingVirtualAccounts],
+        ["资产折算结算状态", result.stripSettlementReady ? "季度末已结算" : "季度未结束，待季度末确认"],
+        ["本季度总户数", result.rankingAccounts],
+        ["本季度任务完成度", percent(result.quarterlyCompletion)],
+        ["本季度完成差额", result.quarterlyMiss],
+        ["剥离系数", result.stripMultiplier ? `1:${result.stripMultiplier}` : "无"],
+        ["剥离结算状态", result.stripSettlementReady ? "季度末已结算" : "季度未结束，暂不结算"],
+        ["本季度需剥离客户数", result.stripCustomers],
+        ["当前大概排名", `第 ${estimate.rank} 名`],
+        ["全员剥离客户池", estimate.totalStripped],
+        ["进入排名分配池客户数", estimate.allocatablePool],
+        ["预计获得剥离客户", estimate.estimatedClients],
+        ["分公司隐性奖励参考", estimate.hiddenRankReward],
+        ["分公司隐性奖励是否计入参考", estimate.isStrongRankReference ? "可作高参考，仍不计入最终合计" : "暂不计入预算"],
+        ["其中开户周度冠军参考", estimate.openingPrize],
+        ["其中优秀联络员参考", estimate.liaisonPrize]
+      ];
+      const rankRows = getRankRows()
+        .map((row, index) => [
+          index + 1,
+          row.employee.name,
+          row.result.departmentPoints,
+          row.result.rankingAccounts,
+          row.result.branchReward,
+          row.result.hqRewardProvided ? row.result.hqReward : "",
+          row.result.finalReward,
+          row.result.quarterlyTarget,
+          row.result.actualAccounts,
+          row.result.stripCustomers,
+          allocation.allocations[row.employee.id] || 0,
+          percent(row.result.quarterlyCompletion)
+        ]);
+      const monthlySettlementRows = result.monthRows
+        .filter((row) => row.month <= result.quarterMonth)
+        .map((row) => [
+          `第${row.month}个月`,
+          row.target,
+          row.accounts,
+          row.target ? percent(row.rate) : "未填月目标",
+          row.chartTier1Count,
+          row.chartTier2Count,
+          row.chartTier3Count,
+          row.openingReward,
+          row.chartReward,
+          row.hiddenRewardProvided ? row.hiddenReward : "待确认",
+          row.hqRewardProvided ? row.hqReward : "",
+          row.monthlyReward
+        ]);
+      const quarterlyResultRows = [
+        ["季度任务目标（户）", result.quarterlyTarget],
+        ["季度实际新增开户数（户）", result.actualAccounts],
+        ["季度新增余额（万元）", result.quarterlyAssetBalance],
+        ["资产折算户数", result.stripSettlementReady ? result.virtualAccounts : "季度末确认"],
+        ["最终统计户数", result.rankingAccounts],
+        ["营业部季度结算奖励（元）", result.departmentRewardForExport],
+        ["其中基础营业部奖励（元）", result.basePoints],
+        ["其中超额营业部奖励（元）", result.sprintPoints],
+        ["本季度需剥离客户（户）", result.stripCustomers],
+        ["预计获得剥离客户（户）", result.stripSettlementReady ? estimate.estimatedClients : "季度末确认"],
+        ["上海分公司三个月结算金额（元）", result.quarterlyMonthlyReward],
+        ["最终导出金额构成", `上海分公司 ${money(result.quarterlyMonthlyReward)} + 营业部季度奖励 ${money(result.departmentRewardForExport)}`],
+        ["季度总部奖励（元）", result.quarterHqRewardProvided ? result.quarterHqReward : ""],
+        ["季度营业部奖金（元）", result.quarterDepartmentRewardProvided ? result.quarterDepartmentReward : ""],
+        ["最终导出金额（元）", result.finalReward]
+      ];
+      const financeComparisonRows = getRankRows().map((row) => [
+        row.employee.name,
+        row.result.monthRows[0].monthlyReward,
+        row.result.monthRows[1].monthlyReward,
+        row.result.monthRows[2].monthlyReward,
+        row.result.departmentRewardForExport,
+        row.result.rankingAccounts,
+        row.result.stripCustomers,
+        row.result.finalReward
+      ]);
+
+      const html = `
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <style>
+              body { font-family: "Microsoft YaHei", Arial, sans-serif; color: #1f2937; padding: 18px; }
+              h1 { margin: 0 0 6px; color: #173f72; font-size: 22px; }
+              h2 { margin: 24px 0 8px; padding: 8px 10px; background: #eaf2fb; color: #173f72; font-size: 15px; }
+              p { margin: 4px 0; color: #52606d; font-size: 11px; }
+              table { width: 100%; border-collapse: collapse; margin: 0 0 12px; font-size: 11px; }
+              th { background: #1f5f99; color: #fff; font-weight: bold; text-align: center; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 8px; }
+              td { text-align: right; }
+              td:first-child { text-align: left; font-weight: bold; background: #f8fafc; }
+              .note td { text-align: left; }
+            </style>
+          </head>
+          <body>
+            <h1>两融业务激励与考核结算报表</h1>
+            <p>员工：${escapeHtml(employee.name)}　所属季度：${result.quarterKey}　统计至：第${result.quarterMonth}个月　导出时间：${new Date().toLocaleString("zh-CN")}</p>
+            <h2>三个月月度结算汇总</h2>
+            ${htmlTable(["月份", "月度目标", "实际新增", "完成度", "开户奖金", "挂图陪访奖金", "隐性奖金", "总部奖励", "营业部月度奖励（参考，元）", "分公司月度结算金额"], monthlySettlementRows.map((row) => [row[0], row[1], row[2], row[3], row[7], row[8], row[9], row[10], result.monthRows[Number(String(row[0]).replace(/\D/g, "")) - 1].monthlyPoints, row[11]]))}
+            <h2>季度营业部结算与最终金额</h2>
+            ${htmlTable(["季度结算项目", "结果"], quarterlyResultRows)}
+            <h2>计算说明</h2>
+            <table class="note"><thead><tr><th>项目</th><th>计算口径</th></tr></thead><tbody>
+              <tr><td>分公司月结</td><td>每个月：开户奖金 + 挂图陪访奖金 + 已确认隐性奖金 + 当月总部奖励 = 月度奖励合计。</td></tr>
+              <tr><td>营业部月度奖励</td><td>每月实际新增开户数 × 200元；仅作季度结算参考，不计入当月分公司月度结算金额。</td></tr>
+              <tr><td>季度结算</td><td>${escapeHtml(result.stripSettlementReady ? `实际新增 ${result.actualAccounts}户 + 折算 ${result.virtualAccounts}户 = 最终 ${result.rankingAccounts}户；营业部季度结算奖励 ${money(result.departmentRewardForExport)}；剥离 ${result.stripCustomers}户。` : `截至第${result.quarterMonth}个月：累计实户 ${result.actualAccounts}户，营业部季度结算奖励、资产折算与剥离均待季度末确认。`)}</td></tr>
+            </tbody></table>
+            <h2>员工财务对比</h2>
+            ${htmlTable(["员工", "第一月分公司结算金额", "第二月分公司结算金额", "第三月分公司结算金额", "营业部季度奖励（元）", "最终统计户数", "需剥离客户", "最终导出金额"], financeComparisonRows)}
+          </body>
+        </html>
+      `;
+      const blob = new Blob(["\ufeff", html], { type: "application/vnd.ms-excel;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${employee.name || "员工"}_两融奖励考核报表.xls`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("Excel 已导出，请到浏览器默认下载目录查看，通常是系统“下载”文件夹。");
+    }
+
+    function htmlTable(headers, rows) {
+      return `
+        <table border="1" cellspacing="0" cellpadding="6">
+          <thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(String(cell))}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      `;
+    }
+
+    function showToast(text) {
+      const toast = $("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 3200);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    const pageStacks = document.querySelectorAll(".layout > .stack");
+    if (pageStacks[1]) {
+      pageStacks[1].appendChild($("rulesPanel"));
+      pageStacks[1].appendChild($("companyRulesPanel"));
+    }
+    bindEvents();
+    renderAll();
+    saveState();
+  </script>
+</body>
+</html>
