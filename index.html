@@ -643,6 +643,18 @@
     .monthly-result-card h3 { margin: 0 0 9px; color: #174c3a; font-size: 15px; }
     .monthly-result-card .result-total { margin: 9px 0 5px; color: #0f7a55; font-size: 21px; font-weight: 900; }
     .monthly-result-card p { margin: 5px 0; color: #46566f; font-size: 12px; }
+    .settlement-warning {
+      display: inline;
+      align-items: center;
+      padding: 1px 5px;
+      border-radius: 5px;
+      background: #fff8e6;
+      color: #8a5700;
+      font-weight: 800;
+      border: 1px solid #ffd57a;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
     .metric.neutral { background: #f8fafc; border-color: #dbe3ee; box-shadow: none; }
     .metric.neutral .value { color: #334155; font-size: 28px; }
     #finalExportResult {
@@ -1728,7 +1740,7 @@
           <p>挂图/赋能奖金：${money(row.chartReward)}</p>
           <p>隐性奖金：${row.hiddenRewardProvided ? money(row.hiddenReward) : "待上海分公司确认（当前按0元计）"}</p>
           <p>总部调整：${row.hqRewardProvided ? money(row.hqReward) : "未填写（当前按0元计）"}</p>
-          <p>营业部月度奖励（参考，季度结算）：${points(row.monthlyPoints)}</p>
+          <p>营业部当月积分转换：${points(row.monthlyPoints)} <span class="settlement-warning">仅该项不发放，季度才结算</span></p>
           <div class="result-total">上海分公司月度结算金额 ${money(row.monthlyReward)}</div>
           <p>计算过程：开户 ${row.accounts} 户，适用 ${money(row.accountUnitReward)}/户阶梯，开户奖金 ${money(row.openingReward)}；${chartProcessText(row)}。</p>
         </article>
@@ -2036,96 +2048,104 @@
     }
 
     function exportExcel() {
-      const employee = activeEmployee();
-      const result = calculate(employee);
-      const estimate = getActiveRankEstimate();
-      const allocation = getAllocationMap();
-      const calculationRows = getCalculationProcessRows(result, estimate);
-      const settlementMonthLabel = `第${result.quarterMonth}个月`;
-      const rows = [
-        ["员工", employee.name],
-        ["导出时间", new Date().toLocaleString("zh-CN")],
-        ["所属季度", result.quarterKey],
-        ["当前季度月份", `第${result.quarterMonth}个月`],
-        [`${settlementMonthLabel}有效开户数`, result.monthlyBranchAccounts],
-        [`${settlementMonthLabel}挂图留证客户：500-1000万`, result.chartTier1Count],
-        [`${settlementMonthLabel}挂图留证客户：1000-5000万`, result.chartTier2Count],
-        [`${settlementMonthLabel}挂图留证客户：5000万以上`, result.chartTier3Count],
-        [`${settlementMonthLabel}重点客户定向赋能次数`, result.chartTier4Count],
-        ["第1个月目标/完成", `${result.monthRows[0].target}/${result.monthRows[0].accounts}`],
-        ["第2个月目标/完成", `${result.monthRows[1].target}/${result.monthRows[1].accounts}`],
-        ["第3个月目标/完成", `${result.monthRows[2].target}/${result.monthRows[2].accounts}`],
-        ["本季度实际新增两融户数", result.actualAccounts],
-        ["本季度新增客户累计余额（万元）", result.quarterlyAssetBalance],
-        ["每月50%门槛", result.monthlyGateQualified ? "已满足" : "未满足"],
-        ["本季度任务目标", result.quarterlyTarget],
-        ["本季度实际完成户数", result.actualAccounts],
-        [`${settlementMonthLabel}开户贡献奖`, result.branchAccountReward],
-        [`${settlementMonthLabel}挂图作战奖`, result.chartReward],
-        ["三个月月度奖励合计", result.quarterlyMonthlyReward],
-        ["最终导出金额合计", result.finalReward],
-        ["营业部季度结算奖励（元）", result.departmentRewardForExport],
-        ["基础营业部奖励（元）", result.basePoints],
-        ["超额营业部奖励（元）", result.sprintPoints],
-        ["营业部季度奖励结算状态", result.stripSettlementReady ? "季度末已结算并纳入最终金额" : "季度未完成，当前仅为营业部奖励参考，未纳入最终金额"],
-        ["超额营业部奖励待结算（元）", result.stripSettlementReady ? 0 : result.pendingSprintAdjustment],
-        ["本季度资产折算户数", result.virtualAccounts],
-        ["资产折算预估户数", result.stripSettlementReady ? 0 : result.pendingVirtualAccounts],
-        ["资产折算结算状态", result.stripSettlementReady ? "季度末已结算" : "季度未完成，待第3个月确认"],
-        ["本季度总户数", result.rankingAccounts],
-        ["本季度任务完成度", percent(result.quarterlyCompletion)],
-        ["本季度完成差额", result.quarterlyMiss],
-        ["剥离系数", result.stripMultiplier ? `1:${result.stripMultiplier}` : "无"],
-        ["剥离结算状态", result.stripSettlementReady ? "季度末已结算" : "季度未完成，暂不结算"],
-        ["本季度需剥离客户数", result.stripCustomers],
-        ["当前大概排名", `第 ${estimate.rank} 名`],
-        ["全员剥离客户池", estimate.totalStripped],
-        ["进入排名分配池客户数", `${estimate.totalStripped} × 60% = ${Math.round(estimate.totalStripped * state.rules.allocationPoolRate * 10) / 10}，四舍五入 ${estimate.allocatablePool}`],
-        ["预计获得剥离客户", estimate.estimatedClients],
-        ["上海分公司隐性奖励参考", estimate.hiddenRankReward],
-        ["上海分公司隐性奖励是否计入参考", estimate.isStrongRankReference ? "可作高参考，仍不计入最终合计" : "暂不计入预算"],
-        ["其中开户周度冠军参考", estimate.openingPrize],
-        ["其中优秀联络员参考", estimate.liaisonPrize]
-      ];
-      const rankRows = getRankRows()
-        .map((row, index) => [
+      const rankRows = getRankRows();
+      const allocation = getAllocationMap(rankRows);
+      const exportedAt = new Date().toLocaleString("zh-CN");
+      const sheets = [];
+      const monthRankHeaders = ["排名", "员工", "月度开户数", "完成度", "上海分公司奖励金额（元）"];
+      const monthRankSections = [1, 2, 3].map((month) => ({
+        title: `第${month}个月月排行榜（上海分公司规则）`,
+        headers: monthRankHeaders,
+        rows: getMonthRankRows(month).map((row, index) => [
           index + 1,
           row.employee.name,
-          row.result.departmentPoints,
-          row.result.rankingAccounts,
-          row.result.branchReward,
-          row.result.hqRewardProvided ? row.result.hqReward : "",
-          row.result.finalReward,
-          row.result.quarterlyTarget,
-          row.result.actualAccounts,
-          row.result.stripCustomers,
-          allocation.allocations[row.employee.id] || 0,
-          percent(row.result.quarterlyCompletion)
-        ]);
-      const monthlySettlementRows = result.monthRows
-        .filter((row) => row.month <= result.quarterMonth)
-        .map((row) => [
-          `第${row.month}个月`,
-          row.target,
-          row.accounts,
-          row.target ? percent(row.rate) : "未填月目标",
-          row.chartTier1Count,
-          row.chartTier2Count,
-          row.chartTier3Count,
-          row.chartTier4Count,
-          row.openingReward,
-          row.chartReward,
-          row.hiddenRewardProvided ? row.hiddenReward : "待确认",
-          row.hqRewardProvided ? row.hqReward : "",
-          row.monthlyReward
-        ]);
-      const monthlyProcessRows = result.monthRows
-        .filter((row) => row.month <= result.quarterMonth)
-        .map((row) => [
-          `第${row.month}个月`,
-          `开户：${row.accounts} 户，适用 ${money(row.accountUnitReward)}/户阶梯，开户奖金 ${money(row.openingReward)}。${chartProcessText(row)}。`
-        ]);
+          row.month.accounts,
+          row.month.target ? percent(row.month.rate) : "未填目标",
+          row.month.monthlyReward
+        ])
+      }));
+      const quarterRankRows = rankRows.map((row, index) => [
+        index + 1,
+        row.employee.name,
+        row.result.actualAccounts,
+        percent(row.result.quarterlyCompletion),
+        row.result.departmentPoints,
+        row.result.stripCustomers > 0 ? row.result.stripCustomers : "无",
+        allocation.allocations[row.employee.id] || 0
+      ]);
+
+      sheets.push({
+        name: "排行榜",
+        sections: [
+          ...monthRankSections,
+          {
+            title: "季度排行榜（营业部规则）",
+            headers: ["排名", "员工", "季度开户数", "季度完成度", "营业部季度奖励（元）", "剥离客户", "获得客户参考"],
+            rows: quarterRankRows
+          }
+        ]
+      });
+
+      rankRows.forEach((rankRow, index) => {
+        const estimate = getExportRankEstimate(rankRow, index, allocation);
+        sheets.push({
+          name: uniqueSheetName(rankRow.employee.name || `员工${index + 1}`, sheets.map((sheet) => sheet.name)),
+          sections: buildEmployeeSheetSections(rankRow.employee, rankRow.result, estimate, exportedAt)
+        });
+      });
+
+      const workbookXml = buildExcelWorkbookXml(sheets);
+      const blob = new Blob([workbookXml], { type: "application/vnd.ms-excel;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `两融奖励考核汇总报表_${new Date().toISOString().slice(0, 10)}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("Excel 已导出：第一个工作表为月/季度排行榜，后续为每位员工结算结果。请到浏览器默认下载目录查看。");
+    }
+
+    function getExportRankEstimate(rankRow, index, allocation) {
+      const rank = index + 1;
+      const openingPrize = state.rules.topFivePrize[rank - 1] || 0;
+      const liaisonPrize = state.rules.topFivePrize[rank - 1] || 0;
+      return {
+        rank,
+        totalStripped: allocation.totalStripped,
+        allocatablePool: allocation.allocatablePool,
+        estimatedClients: allocation.allocations[rankRow.employee.id] || 0,
+        hiddenRankReward: rank <= 5 ? openingPrize + liaisonPrize : 0,
+        openingPrize,
+        liaisonPrize,
+        isStrongRankReference: rank <= 5
+          && rankRow.result.monthlyGateQualified
+          && rankRow.result.quarterlyCompletion >= 1
+          && rankRow.result.monthlyBranchAccounts >= 5
+      };
+    }
+
+    function buildEmployeeSheetSections(employee, result, estimate, exportedAt) {
+      const monthlySettlementRows = result.monthRows.map((row) => [
+        `第${row.month}个月`,
+        row.target,
+        row.accounts,
+        row.target ? percent(row.rate) : "未填月目标",
+        row.chartTier1Count,
+        row.chartTier2Count,
+        row.chartTier3Count,
+        row.chartTier4Count,
+        row.openingReward,
+        row.chartReward,
+        row.hiddenRewardProvided ? row.hiddenReward : "待确认",
+        row.hqRewardProvided ? row.hqReward : "",
+        row.monthlyPoints,
+        row.month <= result.quarterMonth ? row.monthlyReward : "尚未到该月份"
+      ]);
       const quarterlyResultRows = [
+        ["所属季度", result.quarterKey],
+        ["统计至", `第${result.quarterMonth}个月`],
         ["季度任务目标（户）", result.quarterlyTarget],
         ["季度实际新增开户数（户）", result.actualAccounts],
         ["季度新增余额（万元）", result.quarterlyAssetBalance],
@@ -2147,66 +2167,85 @@
           : `季度未完成：当前仅含第1至第${result.quarterMonth}个月上海分公司月结金额 ${money(result.quarterlyMonthlyReward)}；营业部季度奖励、资产折算、剥离和客户分配待第3个月结算`],
         ["最终导出金额（元）", result.finalReward]
       ];
-      const financeComparisonRows = getRankRows().map((row) => [
-        row.employee.name,
-        row.result.monthRows[0].monthlyReward,
-        row.result.monthRows[1].monthlyReward,
-        row.result.monthRows[2].monthlyReward,
-        row.result.departmentRewardForExport,
-        row.result.rankingAccounts,
-        row.result.stripCustomers,
-        allocation.allocations[row.employee.id] || 0,
-        row.result.finalReward
-      ]);
+      return [
+        {
+          title: `${employee.name || "员工"}：上海分公司三个月月结算结果`,
+          headers: ["月份", "月度目标", "实际新增", "完成度", "挂图500-1000万", "挂图1000-5000万", "挂图5000万以上", "重点赋能次数", "开户奖金", "挂图/赋能奖金", "隐性奖金", "总部奖励", "营业部当月积分转换（不结算发放，季度才结算，元）", "上海分公司月度结算金额"],
+          rows: monthlySettlementRows
+        },
+        {
+          title: `${employee.name || "员工"}：营业部季度结算结果`,
+          headers: ["季度结算项目", "结果"],
+          rows: quarterlyResultRows
+        }
+      ];
+    }
 
-      const html = `
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <style>
-              body { font-family: "Microsoft YaHei", Arial, sans-serif; color: #1f2937; padding: 18px; }
-              h1 { margin: 0 0 6px; color: #173f72; font-size: 22px; }
-              h2 { margin: 24px 0 8px; padding: 8px 10px; background: #eaf2fb; color: #173f72; font-size: 15px; }
-              p { margin: 4px 0; color: #52606d; font-size: 11px; }
-              table { width: 100%; border-collapse: collapse; margin: 0 0 12px; font-size: 11px; }
-              th { background: #1f5f99; color: #fff; font-weight: bold; text-align: center; }
-              th, td { border: 1px solid #cbd5e1; padding: 7px 8px; }
-              td { text-align: right; }
-              td:first-child { text-align: left; font-weight: bold; background: #f8fafc; }
-              .note td { text-align: left; }
-            </style>
-          </head>
-          <body>
-            <h1>两融业务激励与考核结算报表</h1>
-            <p>员工：${escapeHtml(employee.name)}　所属季度：${result.quarterKey}　统计至：第${result.quarterMonth}个月　导出时间：${new Date().toLocaleString("zh-CN")}</p>
-            <h2>三个月月度结算汇总</h2>
-            ${htmlTable(["月份", "月度目标", "实际新增", "完成度", "重点赋能次数", "开户奖金", "挂图/赋能奖金", "隐性奖金", "总部奖励", "营业部月度奖励（参考，元）", "上海分公司月度结算金额"], monthlySettlementRows.map((row) => [row[0], row[1], row[2], row[3], row[7], row[8], row[9], row[10], row[11], result.monthRows[Number(String(row[0]).replace(/\D/g, "")) - 1].monthlyPoints, row[12]]))}
-            <h2>月度计算过程</h2>
-            ${htmlTable(["月份", "计算过程"], monthlyProcessRows)}
-            <h2>季度营业部结算与最终金额</h2>
-            ${htmlTable(["季度结算项目", "结果"], quarterlyResultRows)}
-            <h2>计算说明</h2>
-            <table class="note"><thead><tr><th>项目</th><th>计算口径</th></tr></thead><tbody>
-              <tr><td>上海分公司月结</td><td>每个月：开户奖金 + 挂图陪访奖金 + 已确认隐性奖金 + 当月总部奖励 = 月度奖励合计。</td></tr>
-              <tr><td>营业部月度奖励</td><td>每月实际新增开户数 × 200元；仅作季度结算参考，不计入当月上海分公司月度结算金额。</td></tr>
-              <tr><td>季度结算</td><td>${escapeHtml(result.stripSettlementReady ? `实际新增 ${result.actualAccounts}户 + 折算 ${result.virtualAccounts}户 = 最终 ${result.rankingAccounts}户；营业部季度结算奖励 ${money(result.departmentRewardForExport)}；剥离 ${result.stripCustomers}户。` : `截至第${result.quarterMonth}个月：累计实户 ${result.actualAccounts}户，营业部季度结算奖励、资产折算与剥离均待第3个月确认。`)}</td></tr>
-              <tr><td>客户分配封顶</td><td>季度开户数排名前五且每月完成率均达到50%后参与分配；若季度完成度未到100%，获分配客户数不得大于自身剥离客户数，剩余客户继续在符合条件的前五名中按规则分配或待全员数据确认。</td></tr>
-            </tbody></table>
-            <h2>员工财务对比</h2>
-            ${htmlTable(["员工", "第一月上海分公司结算金额", "第二月上海分公司结算金额", "第三月上海分公司结算金额", "营业部季度奖励（元）", "最终统计户数", "需剥离客户", "获得客户参考", "最终导出金额"], financeComparisonRows)}
-          </body>
-        </html>
-      `;
-      const blob = new Blob(["\ufeff", html], { type: "application/vnd.ms-excel;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${employee.name || "员工"}_两融奖励考核报表.xls`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      showToast("Excel 已导出，请到浏览器默认下载目录查看，通常是系统“下载”文件夹。");
+    function buildExcelWorkbookXml(sheets) {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Microsoft YaHei" ss:Size="10"/></Style>
+  <Style ss:ID="Title"><Font ss:FontName="Microsoft YaHei" ss:Bold="1" ss:Size="14" ss:Color="#173F72"/><Interior ss:Color="#EAF2FB" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="Header"><Font ss:FontName="Microsoft YaHei" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1F5F99" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>
+  <Style ss:ID="Text"><Alignment ss:Vertical="Top" ss:WrapText="1"/></Style>
+  <Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/></Style>
+ </Styles>
+ ${sheets.map((sheet) => buildWorksheetXml(sheet)).join("\n")}
+</Workbook>`;
+    }
+
+    function buildWorksheetXml(sheet) {
+      const maxCols = Math.max(14, ...sheet.sections.flatMap((section) => [
+        section.headers ? section.headers.length : 0,
+        ...section.rows.map((row) => row.length)
+      ]));
+      const columns = Array.from({ length: maxCols }, (_, index) => `<Column ss:AutoFitWidth="0" ss:Width="${index < 2 ? 150 : 105}"/>`).join("");
+      const rows = [];
+      sheet.sections.forEach((section) => {
+        rows.push(`<Row>${xmlCell(section.title, "Title", "String", Math.max(0, maxCols - 1))}</Row>`);
+        if (section.headers) rows.push(xmlRow(section.headers, "Header"));
+        section.rows.forEach((row) => rows.push(xmlRow(row)));
+        rows.push("<Row/>");
+      });
+      return `<Worksheet ss:Name="${escapeXml(sheet.name)}"><Table>${columns}${rows.join("")}</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>2</SplitHorizontal><TopRowBottomPane>2</TopRowBottomPane></WorksheetOptions></Worksheet>`;
+    }
+
+    function xmlRow(cells, style) {
+      return `<Row>${cells.map((cell) => xmlCell(cell, style)).join("")}</Row>`;
+    }
+
+    function xmlCell(value, style, forcedType, mergeAcross = 0) {
+      const isNumber = forcedType ? forcedType === "Number" : typeof value === "number" && Number.isFinite(value);
+      const attrs = [
+        style ? `ss:StyleID="${style}"` : (isNumber ? 'ss:StyleID="Number"' : 'ss:StyleID="Text"'),
+        mergeAcross ? `ss:MergeAcross="${mergeAcross}"` : ""
+      ].filter(Boolean).join(" ");
+      return `<Cell ${attrs}><Data ss:Type="${isNumber ? "Number" : "String"}">${escapeXml(value ?? "")}</Data></Cell>`;
+    }
+
+    function uniqueSheetName(name, usedNames) {
+      const clean = String(name || "员工").replace(/[\\/:?*\[\]]/g, "").trim() || "员工";
+      let base = clean.slice(0, 31);
+      let candidate = base;
+      let suffix = 1;
+      while (usedNames.includes(candidate)) {
+        const tail = `_${suffix++}`;
+        candidate = `${base.slice(0, 31 - tail.length)}${tail}`;
+      }
+      return candidate;
+    }
+
+    function escapeXml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
     }
 
     function htmlTable(headers, rows) {
